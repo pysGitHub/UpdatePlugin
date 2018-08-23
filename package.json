@@ -1,0 +1,22 @@
+{
+  "name": "cordova-autoUpdate-plugin",
+  "version": "1.0.1",
+  "description": "update for ios and android",
+  "cordova": {
+    "id": "cordova-autoUpdate-plugin",
+    "platforms": []
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/pysGitHub/UpdatePlugin.git"
+  },
+  "keywords": [
+    "ecosystem:cordova"
+  ],
+  "author": "thomas_pan",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/pysGitHub/UpdatePlugin/issues"
+  },
+  "homepage": "https://github.com/pysGitHub/UpdatePlugin#readme"
+}

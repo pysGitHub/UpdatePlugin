@@ -1,0 +1,38 @@
+<?xml version='1.0' encoding='utf-8'?>
+<plugin id="cordova-autoUpdate-plugin" version="1.0.1" 
+    xmlns="http://apache.org/cordova/ns/plugins/1.0" 
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <name>UpdatePlugin</name>
+    <js-module name="UpdatePlugin" src="www/UpdatePlugin.js">
+        <clobbers target="cordova.plugins.UpdatePlugin" />
+    </js-module>
+    <!-- ios平台配置 -->
+    <platform name="ios">
+        <config-file parent="/*" target="config.xml">
+            <feature name="UpdatePlugin">
+                <param name="ios-package" value="UpdatePlugin" />
+            </feature>
+        </config-file>
+        <source-file src="src/ios/UpdatePlugin.m" />
+        <header-file src="src/ios/UIViewController+Update.h" />
+        <source-file src="src/ios/UIViewController+Update.m" />
+    </platform>
+    <!-- android平台配置 -->
+    <platform name="android">
+        <config-file parent="/*" target="res/xml/config.xml">
+            <feature name="AutoUpdatePlugin">
+                <param name="android-package" value="com.wistron.ptsApp.AutoUpdatePlugin"/>
+                <param name="onload" value="true"/>
+            </feature>
+        </config-file>
+
+        <config-file parent="/manifest" target="AndroidManifest.xml">
+            <uses-permission android:name="android.permission.INTERNET" />
+            <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+            <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+        </config-file>
+
+        <source-file src="src/android/AutoUpdatePlugin.java" target-dir="src/com/wistron/ptsApp" />
+
+    </platform>
+</plugin>
