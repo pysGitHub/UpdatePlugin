@@ -1,6 +1,4 @@
 //
-//  UIViewController+Update.m
-//  导航条
 //
 //  Created by 潘远生 on 2018/7/15.
 //  Copyright © 2018年 潘远生. All rights reserved.
@@ -21,7 +19,7 @@ static NSString *buttonTitile_Key = @"buttonTitile";
 
 -(void)autoUpdateAlert:(NSString *)string{
     
-    self.cancelTitle = @"删除";
+    self.cancelTitle = @"取消";
     self.buttonTitile = @"确定";
     self.build = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"];
     NSString * ptsUrl = [NSString stringWithFormat:@"https://pts.wistron.com/~pts/dispatcher/app/get_update.php?my_platform=iOS&my_version=%@",self.build];
