@@ -22,7 +22,8 @@ static NSString *buttonTitile_Key = @"buttonTitile";
     self.cancelTitle = @"取消";
     self.buttonTitile = @"确定";
     self.build = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"];
-    NSString * ptsUrl = [NSString stringWithFormat:@"https://pts.wistron.com/~pts/dispatcher/app/get_update.php?my_platform=iOS&my_version=%@",self.build];
+    NSString * str = [string stringByAppendingString:@"/~pts/dispatcher/app/get_update.php?my_platform=iOS&my_version="];
+    NSString * ptsUrl = [str stringByAppendingString:self.build];
     // 将空格转义
     NSString *charactersToEscape = @" ";
     NSCharacterSet *allowedCharacters = [[NSCharacterSet characterSetWithCharactersInString:charactersToEscape] invertedSet];
