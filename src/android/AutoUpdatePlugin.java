@@ -69,11 +69,11 @@ public class AutoUpdatePlugin extends CordovaPlugin {
 
   @Override
   public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
-    if ("checkNewVersion".equals(action)) {
+    if ("autoUpdateVersion".equals(action)) {
       //支持自带参数
       String arg = args.getString(0);
       if (null != arg && !arg.isEmpty()) {
-        Log.i(TAG, "checkNewVersionUrl: " + arg);
+        Log.i(TAG, "autoUpdateVersion: " + arg);
         this.checkVersionUrl = arg + UPDATE_URL;
       }
       initBroadcastReceiver();
