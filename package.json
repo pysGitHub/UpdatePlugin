@@ -1,6 +1,6 @@
 {
   "name": "cordova-autoupdate-plugin",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "update for ios and android",
   "cordova": {
     "id": "cordova-autoupdate-plugin",

@@ -1,5 +1,5 @@
-<?xml version='1.0.6' encoding='utf-8'?>
-<plugin id="cordova-autoupdate-plugin" version="1.0.6"
+<?xml version='1.0.7' encoding='utf-8'?>
+<plugin id="cordova-autoupdate-plugin" version="1.0.7"
     xmlns="http://apache.org/cordova/ns/plugins/1.0" 
     xmlns:android="http://schemas.android.com/apk/res/android">
     <name>UpdatePlugin</name>
@@ -21,7 +21,7 @@
     <platform name="android">
         <config-file parent="/*" target="res/xml/config.xml">
             <feature name="UpdatePlugin">
-                <param name="android-package" value="com.wistron.ptsApp.UpdatePlugin"/>
+                <param name="android-package" value="com.wistron.ptsApp.AutoUpdatePlugin"/>
                 <param name="onload" value="true"/>
             </feature>
         </config-file>
