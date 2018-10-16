@@ -38,7 +38,7 @@ import java.net.URL;
 
 /**
  * Created by Anne on 2018-08-03
- * Update by Anne on 2018-08-31
+ * Update by Anne on 2018-10-16
  */
 public class AutoUpdatePlugin extends CordovaPlugin {
   public static final String TAG = "AutoUpdatePlugin";
@@ -90,7 +90,15 @@ public class AutoUpdatePlugin extends CordovaPlugin {
     this.mContext = this.cordova.getActivity();
     Log.d(TAG, "initialize");
     initBroadcastReceiver();
-//    checkNewVersion();
+    //checkNewVersion();
+    //Android系统在6.0以上进行动态申请权限
+            int permission = ActivityCompat.checkSelfPermission(mContext,
+              "android.permission.WRITE_EXTERNAL_STORAGE");
+            if (PackageManager.PERMISSION_GRANTED != permission) {
+              //没有文件存储权限，动态申请
+              ActivityCompat.requestPermissions((Activity) mContext, PERMISSIONS_STORAGE, 1);
+            } 
+          }
   }
 
   private void initBroadcastReceiver() {
@@ -183,6 +191,8 @@ public class AutoUpdatePlugin extends CordovaPlugin {
             if (PackageManager.PERMISSION_GRANTED != permission) {
               //没有文件存储权限，动态申请
               ActivityCompat.requestPermissions((Activity) mContext, PERMISSIONS_STORAGE, 1);
+              showUpdateDialog();
+              alert.dismiss();
             } else
               //有权限，开始下载
               new Thread(new Runnable() {
