@@ -38,7 +38,8 @@ import java.net.URL;
 
 /**
  * Created by Anne on 2018-08-03
- * Update by Anne on 2018-10-16
+ * Update by Anne on 2018-10-17
+ * 修复因权限弹框导致下载安装包失败的问题
  */
 public class AutoUpdatePlugin extends CordovaPlugin {
   public static final String TAG = "AutoUpdatePlugin";
@@ -92,13 +93,13 @@ public class AutoUpdatePlugin extends CordovaPlugin {
     initBroadcastReceiver();
     //checkNewVersion();
     //Android系统在6.0以上进行动态申请权限
-            int permission = ActivityCompat.checkSelfPermission(mContext,
-              "android.permission.WRITE_EXTERNAL_STORAGE");
-            if (PackageManager.PERMISSION_GRANTED != permission) {
-              //没有文件存储权限，动态申请
-              ActivityCompat.requestPermissions((Activity) mContext, PERMISSIONS_STORAGE, 1);
-            } 
-          }
+    int permission = ActivityCompat.checkSelfPermission(mContext,
+        "android.permission.WRITE_EXTERNAL_STORAGE");
+    if (PackageManager.PERMISSION_GRANTED != permission) {
+      //没有文件存储权限，动态申请
+      ActivityCompat.requestPermissions((Activity) mContext, PERMISSIONS_STORAGE, 1);
+    } 
+          
   }
 
   private void initBroadcastReceiver() {
@@ -192,7 +193,6 @@ public class AutoUpdatePlugin extends CordovaPlugin {
               //没有文件存储权限，动态申请
               ActivityCompat.requestPermissions((Activity) mContext, PERMISSIONS_STORAGE, 1);
               showUpdateDialog();
-              alert.dismiss();
             } else
               //有权限，开始下载
               new Thread(new Runnable() {
