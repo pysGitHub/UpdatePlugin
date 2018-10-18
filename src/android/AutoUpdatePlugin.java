@@ -37,41 +37,37 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 /**
- * Created by Anne on 2018-08-03
- * Update by Anne on 2018-10-17
- * 修复因权限弹框导致下载安装包失败的问题
+ * Created by Anne on 2018-08-03 Update by Anne on 2018-10-18 增加版本号VersionCode
  */
 public class AutoUpdatePlugin extends CordovaPlugin {
   public static final String TAG = "AutoUpdatePlugin";
-  //用来请求版本数据的链接
+  // 用来请求版本数据的链接
   private String checkVersionUrl = null;
-  //新版本的下载链接
+  // 新版本的下载链接
   private String newVersionUrl = null;
   private Version latestVersion = null;
   private Context mContext;
 
-  //拼接用的URL
+  // 拼接用的URL
   private static String UPDATE_URL = "/~pts/dispatcher/app/get_update.php?my_platform=Android&my_version=";
 
-  //正式区
+  // 正式区
   private static String UPDATE_SERVER_URL_PTS = "https://pts.wistron.com/~pts/dispatcher/app/get_update.php?my_platform=Android&my_version=";
-  //测试区
+  // 测试区
   private static String UPDATE_SERVER_URL_TW_TEST = "http://pts-test.wistron.com/~pts/dispatcher/app/get_update.php?my_platform=Android&my_version=";
-  //？？？
+  // ？？？
   private static String UPDATE_SERVER_URL_SH = "http://10.43.146.38/~pts/dispatcher/app/get_update.php?my_platform=Android&my_version=";
 
   private static final int HAS_NEW_VERSION = 0x1111;
 
-  //需要动态申请的权限
-  private static String[] PERMISSIONS_STORAGE = {
-    "android.permission.WRITE_EXTERNAL_STORAGE",
-    "android.permission.READ_EXTERNAL_STORAGE"
-  };
+  // 需要动态申请的权限
+  private static String[] PERMISSIONS_STORAGE = { "android.permission.WRITE_EXTERNAL_STORAGE",
+      "android.permission.READ_EXTERNAL_STORAGE" };
 
   @Override
   public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
     if ("autoUpdateVersion".equals(action)) {
-      //支持自带参数
+      // 支持自带参数
       String arg = args.getString(0);
       if (null != arg && !arg.isEmpty()) {
         Log.i(TAG, "autoUpdateVersion: " + arg);
@@ -91,15 +87,14 @@ public class AutoUpdatePlugin extends CordovaPlugin {
     this.mContext = this.cordova.getActivity();
     Log.d(TAG, "initialize");
     initBroadcastReceiver();
-    //checkNewVersion();
-    //Android系统在6.0以上进行动态申请权限
-    int permission = ActivityCompat.checkSelfPermission(mContext,
-        "android.permission.WRITE_EXTERNAL_STORAGE");
+    // checkNewVersion();
+    // Android系统在6.0以上进行动态申请权限
+    int permission = ActivityCompat.checkSelfPermission(mContext, "android.permission.WRITE_EXTERNAL_STORAGE");
     if (PackageManager.PERMISSION_GRANTED != permission) {
-      //没有文件存储权限，动态申请
+      // 没有文件存储权限，动态申请
       ActivityCompat.requestPermissions((Activity) mContext, PERMISSIONS_STORAGE, 1);
-    } 
-          
+    }
+
   }
 
   private void initBroadcastReceiver() {
@@ -148,7 +143,7 @@ public class AutoUpdatePlugin extends CordovaPlugin {
           int responseCode = connection.getResponseCode();
           Log.d(TAG, "responseCode = " + responseCode);
           if (responseCode == 200) {
-            //请求成功，对get的数据进行解析
+            // 请求成功，对get的数据进行解析
             reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
             while (null != (line = reader.readLine())) {
               buffer.append(line);
@@ -156,13 +151,13 @@ public class AutoUpdatePlugin extends CordovaPlugin {
             String data = buffer.toString();
             Log.d(TAG, "returned data :" + data);
             parseDownloadUrl(data);
-            //解析成功，获取到当前的最新版本信息
-            if (null != latestVersion) {
+            // 解析成功，获取到当前的最新版本信息
+            if (null != latestVersion && null != getVersionCode()) {
               if (!latestVersion.versionCode.equals(getVersionCode())) {
                 mHandler.sendEmptyMessage(HAS_NEW_VERSION);
               } else
-                Log.d(TAG, "currentVersionCode:" + getVersionCode()
-                  + " \nlatestVersionCode:" + latestVersion.getVersionCode());
+                Log.d(TAG, "currentVersionCode:" + getVersionCode() + " \nlatestVersionCode:"
+                    + latestVersion.getVersionCode());
             }
           }
         } catch (java.io.IOException e) {
@@ -179,44 +174,42 @@ public class AutoUpdatePlugin extends CordovaPlugin {
   private void showUpdateDialog() {
     Log.i(TAG, "showUpdateDialog");
     AlertDialog.Builder alert = new AlertDialog.Builder(mContext);
-    alert.setTitle(latestVersion.getSummary())
-      .setMessage(latestVersion.getDescription())
-      .setPositiveButton("确定下载", new DialogInterface.OnClickListener() {
-        @Override
-        public void onClick(DialogInterface dialog, int which) {
-          //确认下载的逻辑
-          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            //Android系统在6.0以上进行动态申请权限
-            int permission = ActivityCompat.checkSelfPermission(mContext,
-              "android.permission.WRITE_EXTERNAL_STORAGE");
-            if (PackageManager.PERMISSION_GRANTED != permission) {
-              //没有文件存储权限，动态申请
-              ActivityCompat.requestPermissions((Activity) mContext, PERMISSIONS_STORAGE, 1);
-              showUpdateDialog();
-            } else
-              //有权限，开始下载
-              new Thread(new Runnable() {
-                @Override
-                public void run() {
-                  downLoadFile(latestVersion.getUrl());
-                }
-              }).start();
+    alert.setTitle(latestVersion.getSummary()).setMessage(latestVersion.getDescription())
+        .setPositiveButton("确定下载", new DialogInterface.OnClickListener() {
+          @Override
+          public void onClick(DialogInterface dialog, int which) {
+            // 确认下载的逻辑
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+              // Android系统在6.0以上进行动态申请权限
+              int permission = ActivityCompat.checkSelfPermission(mContext,
+                  "android.permission.WRITE_EXTERNAL_STORAGE");
+              if (PackageManager.PERMISSION_GRANTED != permission) {
+                // 没有文件存储权限，动态申请
+                ActivityCompat.requestPermissions((Activity) mContext, PERMISSIONS_STORAGE, 1);
+                showUpdateDialog();
+              } else
+                // 有权限，开始下载
+                new Thread(new Runnable() {
+                  @Override
+                  public void run() {
+                    downLoadFile(latestVersion.getUrl());
+                  }
+                }).start();
+            }
           }
-        }
-      })
-      .setNegativeButton("残忍拒绝", new DialogInterface.OnClickListener() {
-        @Override
-        public void onClick(DialogInterface dialog, int which) {
-          //取消下载的逻辑
-          dialog.dismiss();
-        }
-      })
-      .setCancelable(false);
+        }).setNegativeButton("残忍拒绝", new DialogInterface.OnClickListener() {
+          @Override
+          public void onClick(DialogInterface dialog, int which) {
+            // 取消下载的逻辑
+            dialog.dismiss();
+          }
+        }).setCancelable(false);
     alert.create().show();
   }
 
   @Override
-  public void onRequestPermissionResult(int requestCode, String[] permissions, int[] grantResults) throws JSONException {
+  public void onRequestPermissionResult(int requestCode, String[] permissions, int[] grantResults)
+      throws JSONException {
     Log.d(TAG, "onRequestPermissionResult: requestCode: " + requestCode);
     super.onRequestPermissionResult(requestCode, permissions, grantResults);
     if (requestCode == 1) {
@@ -249,7 +242,8 @@ public class AutoUpdatePlugin extends CordovaPlugin {
       latestVersion = new Version();
       latestVersion.description = android.getString("description");
       latestVersion.summary = android.getString("summary");
-      latestVersion.versionCode = android.getString("version");
+      latestVersion.versionCode = android.getString("versionCode");
+      latestVersion.version = android.getString("version");
       latestVersion.url = android.getString("package");
       Log.d(TAG, "parseNewVersion successful!" + latestVersion.getUrl());
     } catch (JSONException e) {
@@ -290,7 +284,8 @@ public class AutoUpdatePlugin extends CordovaPlugin {
     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
       intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-      Uri contentUri = FileProvider.getUriForFile(context, context.getApplicationContext().getPackageName() + ".fileprovider", apkFile); //与manifest中定义的provider中的authorities="com.wistron.ptsApp.fileprovider"保持一致
+      Uri contentUri = FileProvider.getUriForFile(context,
+          context.getApplicationContext().getPackageName() + ".fileprovider", apkFile); // 与manifest中定义的provider中的authorities="com.wistron.ptsApp.fileprovider"保持一致
       intent.setDataAndType(contentUri, "application/vnd.android.package-archive");
     } else {
       intent.setDataAndType(Uri.fromFile(apkFile), "application/vnd.android.package-archive");
@@ -304,6 +299,8 @@ public class AutoUpdatePlugin extends CordovaPlugin {
   class Version {
     private String summary;
     private String description;
+
+    private String version;
     private String versionCode;
     private String url;
 
@@ -338,6 +335,14 @@ public class AutoUpdatePlugin extends CordovaPlugin {
     public void setUrl(String url) {
       this.url = url;
     }
+
+    public String getVersion() {
+      return version;
+    }
+
+    public void setVersion(String version) {
+      this.version = version;
+    }
   }
 
   private Handler mHandler = new Handler() {
@@ -345,11 +350,11 @@ public class AutoUpdatePlugin extends CordovaPlugin {
     public void handleMessage(Message msg) {
       super.handleMessage(msg);
       switch (msg.what) {
-        case HAS_NEW_VERSION:
-          showUpdateDialog();
-          break;
-        default:
-          break;
+      case HAS_NEW_VERSION:
+        showUpdateDialog();
+        break;
+      default:
+        break;
       }
     }
   };
