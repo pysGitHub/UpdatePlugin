@@ -38,8 +38,7 @@ import java.net.URL;
 import java.util.Locale;
 
 /**
- * Created by Anne on 2018-08-03 Update by Anne on 2019-03-20
- * 增加跳转浏览器下载更新逻辑，适配多语言
+ * Created by Anne on 2018-08-03 Update by Anne on 2019-03-28 手动拼接下载链接
  */
 public class AutoUpdatePlugin extends CordovaPlugin {
   public static final String TAG = "AutoUpdatePlugin";
@@ -48,6 +47,10 @@ public class AutoUpdatePlugin extends CordovaPlugin {
   // 新版本的下载链接
   private String newVersionUrl = null;
   private Version latestVersion = null;
+
+  // 跳转到浏览器的链接
+  private String downloadUrl = null;
+
   private Context mContext;
 
   // 拼接用的URL
@@ -66,7 +69,7 @@ public class AutoUpdatePlugin extends CordovaPlugin {
       + "Would you like to open the download link and install the latest update manually?\n";
   private static final String MSG_CN = "您未允许TSS App读取该设备上的文件，因此无法自动更新。\n" + "是否打开下载地址手动安装最新版本？\n";
   private static final String MSG_TW = "因為您未允許TSS App讀取此裝置檔案，所以無法自動更新。\n" + "是否要打開下載連結手動安裝最新版本 ?\n";
-  private static final String URL_DOWNLOAD = "https://pts.wistron.com/~pts/dispatcher/app/store/index.php";
+  private static final String URL_DOWNLOAD = "/~pts/dispatcher/app/store/index.php";
 
   private static final String BTN_OK = "YES";
   private static final String BTN_CANCEL = "NO";
@@ -85,6 +88,7 @@ public class AutoUpdatePlugin extends CordovaPlugin {
       if (null != arg && !arg.isEmpty()) {
         Log.i(TAG, "autoUpdateVersion: " + arg);
         this.checkVersionUrl = arg + UPDATE_URL;
+        this.downloadUrl = arg + URL_DOWNLOAD;
       }
       initBroadcastReceiver();
       checkNewVersion();
@@ -245,7 +249,7 @@ public class AutoUpdatePlugin extends CordovaPlugin {
     builder.setPositiveButton(btn_ok, new DialogInterface.OnClickListener() {
       @Override
       public void onClick(DialogInterface dialog, int which) {
-        Uri uri = Uri.parse(URL_DOWNLOAD);
+        Uri uri = Uri.parse(downloadUrl);
         Intent intent = new Intent(Intent.ACTION_VIEW, uri);
         mContext.startActivity(intent);
         dialog.dismiss();
@@ -324,7 +328,7 @@ public class AutoUpdatePlugin extends CordovaPlugin {
   private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
     @Override
     public void onReceive(Context context, Intent intent) {
-      if (intent.getAction().equals("android.intent.action.DOWNLOAD_COMPLETE")) {
+      if (null != intent.getAction() && intent.getAction().equals("android.intent.action.DOWNLOAD_COMPLETE")) {
         installApk(context);
       }
     }
