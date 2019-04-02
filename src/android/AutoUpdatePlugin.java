@@ -1,6 +1,5 @@
 package com.wistron.ptsApp;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.DownloadManager;
 import android.content.BroadcastReceiver;
@@ -17,7 +16,6 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.preference.PreferenceManager;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.FileProvider;
 import android.util.Log;
 
@@ -38,14 +36,14 @@ import java.net.URL;
 import java.util.Locale;
 
 /**
- * Created by Anne on 2018-08-03 Update by Anne on 2019-03-28 手动拼接下载链接
+ * Created by Anne on 2018-08-03 Update by Anne on 2019-04-02 修改更新逻辑为跳转浏览器下载
  */
 public class AutoUpdatePlugin extends CordovaPlugin {
   public static final String TAG = "AutoUpdatePlugin";
   // 用来请求版本数据的链接
   private String checkVersionUrl = null;
   // 新版本的下载链接
-  private String newVersionUrl = null;
+  // private String newVersionUrl = null;
   private Version latestVersion = null;
 
   // 跳转到浏览器的链接
@@ -65,11 +63,21 @@ public class AutoUpdatePlugin extends CordovaPlugin {
 
   private static final int HAS_NEW_VERSION = 0x1111;
 
-  private static final String MSG_ENG = "TSS App is denied from reading your files. Unable to update automatically.\n"
-      + "Would you like to open the download link and install the latest update manually?\n";
-  private static final String MSG_CN = "您未允许TSS App读取该设备上的文件，因此无法自动更新。\n" + "是否打开下载地址手动安装最新版本？\n";
-  private static final String MSG_TW = "因為您未允許TSS App讀取此裝置檔案，所以無法自動更新。\n" + "是否要打開下載連結手動安裝最新版本 ?\n";
+  // private static final String MSG_ENG = "TSS App is denied from reading your
+  // files. Unable to update automatically.\n"
+  // + "Would you like to open the download link and install the latest update
+  // manually?\n";
+  // private static final String MSG_CN = "您未允许TSS App读取该设备上的文件，因此无法自动更新。\n" +
+  // "是否打开下载地址手动安装最新版本？\n";
+  // private static final String MSG_TW = "因為您未允許TSS App讀取此裝置檔案，所以無法自動更新。\n" +
+  // "是否要打開下載連結手動安裝最新版本 ?\n";
   private static final String URL_DOWNLOAD = "/~pts/dispatcher/app/store/index.php";
+
+  private static final String MSG = "TSS App VERSION_NUMBER has been released.\n"
+      + "Would you like to open the download link and install the latest update manually?\n";
+
+  private static final String MSG_CN = "已发布TSS App VERSION_NUMBER。\n" + "是否打开下载地址手动安装最新版本？\n";
+  private static final String MSG_TW = "已發佈TSS App VERSION_NUMBER。\n" + "是否要打開下載連結手動安裝最新版本 ?\n";
 
   private static final String BTN_OK = "YES";
   private static final String BTN_CANCEL = "NO";
@@ -106,11 +114,13 @@ public class AutoUpdatePlugin extends CordovaPlugin {
     initBroadcastReceiver();
     // checkNewVersion();
     // Android系统在6.0以上进行动态申请权限
-    int permission = ActivityCompat.checkSelfPermission(mContext, "android.permission.WRITE_EXTERNAL_STORAGE");
-    if (PackageManager.PERMISSION_GRANTED != permission) {
-      // 没有文件存储权限，动态申请
-      ActivityCompat.requestPermissions((Activity) mContext, PERMISSIONS_STORAGE, 1);
-    }
+    /*
+     * int permission = ActivityCompat.checkSelfPermission(mContext,
+     * "android.permission.WRITE_EXTERNAL_STORAGE"); if
+     * (PackageManager.PERMISSION_GRANTED != permission) { // 没有文件存储权限，动态申请
+     * ActivityCompat.requestPermissions((Activity) mContext, PERMISSIONS_STORAGE,
+     * 1); }
+     */
 
   }
 
@@ -190,49 +200,11 @@ public class AutoUpdatePlugin extends CordovaPlugin {
    */
   private void showUpdateDialog() {
     Log.i(TAG, "showUpdateDialog");
-    AlertDialog.Builder alert = new AlertDialog.Builder(mContext);
-    alert.setTitle(latestVersion.getSummary()).setMessage(latestVersion.getDescription())
-        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-          @Override
-          public void onClick(DialogInterface dialog, int which) {
-            // 确认下载的逻辑
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-              // Android系统在6.0以上进行动态申请权限
-              int permission = ActivityCompat.checkSelfPermission(mContext,
-                  "android.permission.WRITE_EXTERNAL_STORAGE");
-              if (PackageManager.PERMISSION_GRANTED != permission) {
-                showNoPermissionMsg();
-              } else {
-                // 有权限，开始下载
-                new Thread(new Runnable() {
-                  @Override
-                  public void run() {
-                    downLoadFile(latestVersion.getUrl());
-                  }
-                }).start();
-              }
-            }
-          }
-        }).setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
-          @Override
-          public void onClick(DialogInterface dialog, int which) {
-            // 取消下载的逻辑
-            dialog.dismiss();
-          }
-        }).setCancelable(false);
-    alert.create().show();
-  }
 
-  /**
-   * 没有给权限时跳转到浏览器打开apk下载链接
-   */
-  private void showNoPermissionMsg() {
-    Log.i(TAG, "showNoPermissionMsg");
-    AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
-    // 默认英语
-    String msg = MSG_ENG;
+    String msg = MSG;
     String btn_ok = BTN_OK;
     String btn_cancel = BTN_CANCEL;
+
     Locale locale = Locale.getDefault();
     if (locale.getDisplayLanguage(Locale.CHINA).equals("中文")) {
       btn_ok = BTN_OK_CN;
@@ -245,24 +217,62 @@ public class AutoUpdatePlugin extends CordovaPlugin {
         msg = MSG_TW;
       }
     }
-    builder.setMessage(msg);
-    builder.setPositiveButton(btn_ok, new DialogInterface.OnClickListener() {
-      @Override
-      public void onClick(DialogInterface dialog, int which) {
-        Uri uri = Uri.parse(downloadUrl);
-        Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-        mContext.startActivity(intent);
-        dialog.dismiss();
-      }
-    });
-    builder.setNegativeButton(btn_cancel, new DialogInterface.OnClickListener() {
-      @Override
-      public void onClick(DialogInterface dialog, int which) {
-        dialog.dismiss();
-      }
-    });
-    builder.create().show();
+    msg = msg.replace("VERSION_NUMBER", latestVersion.getVersion());
+
+    AlertDialog.Builder alert = new AlertDialog.Builder(mContext);
+    alert.setTitle(latestVersion.getSummary()).setMessage(msg)
+        .setPositiveButton(btn_ok, new DialogInterface.OnClickListener() {
+          @Override
+          public void onClick(DialogInterface dialog,
+              int which) {/*
+                           * // 确认下载的逻辑 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) { //
+                           * Android系统在6.0以上进行动态申请权限 int permission =
+                           * ActivityCompat.checkSelfPermission(mContext,
+                           * "android.permission.WRITE_EXTERNAL_STORAGE"); if
+                           * (PackageManager.PERMISSION_GRANTED != permission) { showNoPermissionMsg(); }
+                           * else { // 有权限，开始下载 new Thread(new Runnable() {
+                           * 
+                           * @Override public void run() { downLoadFile(latestVersion.getUrl()); }
+                           * }).start(); } }
+                           */
+            // 直接跳转浏览器下载
+            Uri uri = Uri.parse(downloadUrl);
+            Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+            mContext.startActivity(intent);
+            dialog.dismiss();
+          }
+        }).setNegativeButton(btn_cancel, new DialogInterface.OnClickListener() {
+          @Override
+          public void onClick(DialogInterface dialog, int which) {
+            // 取消下载的逻辑
+            dialog.dismiss();
+          }
+        }).setCancelable(false);
+    alert.create().show();
   }
+
+  /*
+   * /** 没有给权限时跳转到浏览器打开apk下载链接
+   *//*
+      * private void showNoPermissionMsg() { Log.i(TAG, "showNoPermissionMsg");
+      * AlertDialog.Builder builder = new AlertDialog.Builder(mContext); // 默认英语
+      * String msg = MSG_ENG; String btn_ok = BTN_OK; String btn_cancel = BTN_CANCEL;
+      * Locale locale = Locale.getDefault(); if
+      * (locale.getDisplayLanguage(Locale.CHINA).equals("中文")) { btn_ok = BTN_OK_CN;
+      * btn_cancel = BTN_CANCEL_CN; if (locale.getCountry().equals("CN")) { // 简中 msg
+      * = MSG_CN; } else if (locale.getCountry().equals("TW") ||
+      * locale.getCountry().equals("HK")) { // 繁中 msg = MSG_TW; } }
+      * builder.setMessage(msg); builder.setPositiveButton(btn_ok, new
+      * DialogInterface.OnClickListener() {
+      * 
+      * @Override public void onClick(DialogInterface dialog, int which) { Uri uri =
+      * Uri.parse(downloadUrl); Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+      * mContext.startActivity(intent); dialog.dismiss(); } });
+      * builder.setNegativeButton(btn_cancel, new DialogInterface.OnClickListener() {
+      * 
+      * @Override public void onClick(DialogInterface dialog, int which) {
+      * dialog.dismiss(); } }); builder.create().show(); }
+      */
 
   @Override
   public void onRequestPermissionResult(int requestCode, String[] permissions, int[] grantResults)
