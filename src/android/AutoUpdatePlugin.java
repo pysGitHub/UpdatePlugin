@@ -54,13 +54,6 @@ public class AutoUpdatePlugin extends CordovaPlugin {
   // 拼接用的URL
   private static String UPDATE_URL = "/~pts/dispatcher/app/get_update.php?my_platform=Android&my_version=";
 
-  // 正式区
-  private static String UPDATE_SERVER_URL_PTS = "https://pts.wistron.com/~pts/dispatcher/app/get_update.php?my_platform=Android&my_version=";
-  // 测试区
-  private static String UPDATE_SERVER_URL_TW_TEST = "http://pts-test.wistron.com/~pts/dispatcher/app/get_update.php?my_platform=Android&my_version=";
-  // ？？？
-  private static String UPDATE_SERVER_URL_SH = "http://10.43.146.38/~pts/dispatcher/app/get_update.php?my_platform=Android&my_version=";
-
   private static final int HAS_NEW_VERSION = 0x1111;
 
   // private static final String MSG_ENG = "TSS App is denied from reading your
