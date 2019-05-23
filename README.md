@@ -7,7 +7,7 @@
 
 
     // 自动更新
-    cordova.plugins.UpdatePlugin.coolMethod("ios",function (message) {
+    cordova.plugins.UpdatePlugin.coolMethod(传入的url,function (message) {
     },
     function (error) {
     });
