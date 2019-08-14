@@ -19,8 +19,18 @@ static NSString *buttonTitile_Key = @"buttonTitile";
 
 -(void)autoUpdateAlert:(NSString *)string{
     
-    self.cancelTitle = @"取消";
-    self.buttonTitile = @"确定";
+    NSArray *appLanguages = [[NSUserDefaults standardUserDefaults] objectForKey:@"AppleLanguages"];
+    NSString *languageName = [appLanguages objectAtIndex:0];
+    if ([languageName containsString:@"en"]) {
+        self.cancelTitle = @"Cancle";
+        self.buttonTitile = @"OK";
+    }else if([languageName containsString:@"zh-Hans"]){
+        self.cancelTitle = @"取消";
+        self.buttonTitile = @"确定";
+    }else{
+        self.cancelTitle = @"取消";
+        self.buttonTitile = @"確定";
+    }
     self.build = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"];
     NSString * str = [string stringByAppendingString:@"/~pts/dispatcher/app/get_update.php?my_platform=iOS&my_version="];
     NSString * ptsUrl = [str stringByAppendingString:self.build];
@@ -52,7 +62,7 @@ static NSString *buttonTitile_Key = @"buttonTitile";
                     if ((![self.autoUploadVersion isEqualToString:self.build])) {
                         //更新UI操作需要在主线程
                         dispatch_async(dispatch_get_main_queue(), ^{
-                            [self mainQueue:self.autoUploadUrl title:self.autoUploadTitle message:self.autoUploadMessage url:self.autoUploadUrl];
+                            [self mainQueue:self.autoUploadUrl title:self.autoUploadTitle message:self.autoUploadMessage url:self.autoUploadUrl forceUpdate:autoDicData[@"ios"][@"update"]];
                         });
                     }
                 }
@@ -65,10 +75,15 @@ static NSString *buttonTitile_Key = @"buttonTitile";
 
 
 
-- (void)mainQueue:(NSString *)urlStr title:(NSString *)updateTitle message:(NSString *)message url:(NSString *)updateUrl{
+- (void)mainQueue:(NSString *)urlStr title:(NSString *)updateTitle message:(NSString *)message url:(NSString *)updateUrl forceUpdate:(NSString *)forceUpdate{
     UIAlertController *alertController = [UIAlertController alertControllerWithTitle:self.autoUploadTitle message:self.autoUploadMessage preferredStyle:UIAlertControllerStyleAlert];
-    [alertController addAction:[UIAlertAction actionWithTitle:self.cancelTitle style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
-    }]];
+    
+    if (![forceUpdate isEqualToString:@"true"]) {
+        [alertController addAction:[UIAlertAction actionWithTitle:self.cancelTitle style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
+        }]];
+    }
+    
+    
     
     [alertController addAction:[UIAlertAction actionWithTitle:self.buttonTitile style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
         if (@available(iOS 10.0, *)) {
