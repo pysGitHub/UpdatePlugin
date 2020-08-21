@@ -101,7 +101,7 @@ public class AutoUpdatePlugin extends CordovaPlugin {
   @Override
   public void initialize(CordovaInterface cordova, CordovaWebView webView) {
     super.initialize(cordova, webView);
-    this.checkVersionUrl = UPDATE_SERVER_URL_PTS;
+    // this.checkVersionUrl = UPDATE_SERVER_URL_PTS;
     this.mContext = this.cordova.getActivity();
     Log.d(TAG, "initialize");
     initBroadcastReceiver();
