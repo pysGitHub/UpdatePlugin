@@ -36,7 +36,8 @@ import java.net.URL;
 import java.util.Locale;
 
 /**
- * Created by Anne on 2018-08-03 Update by Anne on 2019-04-02 修改更新逻辑为跳转浏览器下载
+ * Created by Anne on 2018-08-03 
+ * Update by Anne on 2020-08-25 修改强制更新逻辑可由后台参数配置
  */
 public class AutoUpdatePlugin extends CordovaPlugin {
   public static final String TAG = "AutoUpdatePlugin";
@@ -234,13 +235,19 @@ public class AutoUpdatePlugin extends CordovaPlugin {
             mContext.startActivity(intent);
             dialog.dismiss();
           }
-        }).setNegativeButton(btn_cancel, new DialogInterface.OnClickListener() {
-          @Override
-          public void onClick(DialogInterface dialog, int which) {
-            // 取消下载的逻辑
-            dialog.dismiss();
-          }
-        }).setCancelable(false);
+        });
+    String update = latestVersion.update;
+    if (null != update && !update.equals("true")){
+        //不强制更新
+          alert.setNegativeButton(btn_cancel, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+              // 取消下载的逻辑
+              dialog.dismiss();
+            }
+          });
+    }
+    alert.setCancelable(false);
     alert.create().show();
   }
 
@@ -305,6 +312,7 @@ public class AutoUpdatePlugin extends CordovaPlugin {
       latestVersion.versionCode = android.getString("versionCode");
       latestVersion.version = android.getString("version");
       latestVersion.url = android.getString("package");
+      latestVersion.update = android.getString("update");
       Log.d(TAG, "parseNewVersion successful!" + latestVersion.getUrl());
     } catch (JSONException e) {
       e.printStackTrace();
@@ -363,6 +371,16 @@ public class AutoUpdatePlugin extends CordovaPlugin {
     private String version;
     private String versionCode;
     private String url;
+    private String update;
+
+    
+    public String getUpdate() {
+      return update;
+    }
+
+    public void setUpdate(String update) {
+      this.update = update;
+    }
 
     public String getSummary() {
       return summary;
