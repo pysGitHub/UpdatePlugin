@@ -36,8 +36,8 @@ import java.net.URL;
 import java.util.Locale;
 
 /**
- * Created by Anne on 2018-08-03 
- * Update by Anne on 2020-08-25 修改强制更新逻辑可由后台参数配置
+ * Created by Anne on 2018-08-03 Update by Anne on 2020-08-27
+ * 修改更新提示改为后台传送的description， 强制更新时不让弹窗可以消失（除非更了版本）
  */
 public class AutoUpdatePlugin extends CordovaPlugin {
   public static final String TAG = "AutoUpdatePlugin";
@@ -67,16 +67,19 @@ public class AutoUpdatePlugin extends CordovaPlugin {
   // "是否要打開下載連結手動安裝最新版本 ?\n";
   private static final String URL_DOWNLOAD = "/~pts/dispatcher/app/store/index.php";
 
-  private static final String MSG = "TSS App VERSION_NUMBER has been released.\n"
-      + "Would you like to open the download link and install the latest update manually?\n";
+  // private static final String MSG = "TSS App VERSION_NUMBER has been
+  // released.\n "
+  // + "If it is not updated, you will not receive the App push notification. ";
 
-  private static final String MSG_CN = "已发布TSS App VERSION_NUMBER。\n" + "是否打开下载地址手动安装最新版本？\n";
-  private static final String MSG_TW = "已發佈TSS App VERSION_NUMBER。\n" + "是否要打開下載連結手動安裝最新版本 ?\n";
+  // private static final String MSG_CN = "已发布TSS App VERSION_NUMBER。\n" +
+  // "是否打开下载地址手动安装最新版本？\n";
+  // private static final String MSG_TW = "已發佈TSS App VERSION_NUMBER。\n" +
+  // "是否要打開下載連結手動安裝最新版本 ?\n";
 
-  private static final String BTN_OK = "YES";
-  private static final String BTN_CANCEL = "NO";
-  private static final String BTN_OK_CN = "是";
-  private static final String BTN_CANCEL_CN = "否";
+  private static final String BTN_OK = "Update";
+  private static final String BTN_CANCEL = "Cancel";
+  // private static final String BTN_OK_CN = "是";
+  // private static final String BTN_CANCEL_CN = "否";
 
   // 需要动态申请的权限
   private static String[] PERMISSIONS_STORAGE = { "android.permission.WRITE_EXTERNAL_STORAGE",
@@ -195,27 +198,32 @@ public class AutoUpdatePlugin extends CordovaPlugin {
   private void showUpdateDialog() {
     Log.i(TAG, "showUpdateDialog");
 
-    String msg = MSG;
+    // String msg = MSG;
+    // String btn_ok = BTN_OK;
+    // String btn_cancel = BTN_CANCEL;
+
+    // Locale locale = Locale.getDefault();
+    // if (locale.getDisplayLanguage(Locale.CHINA).equals("中文")) {
+    // btn_ok = BTN_OK_CN;
+    // btn_cancel = BTN_CANCEL_CN;
+    // if (locale.getCountry().equals("CN")) {
+    // // 简中
+    // msg = MSG_CN;
+    // } else if (locale.getCountry().equals("TW") ||
+    // locale.getCountry().equals("HK")) {
+    // // 繁中
+    // msg = MSG_TW;
+    // }
+    // }
+    // msg = msg.replace("VERSION_NUMBER", latestVersion.getVersion());
+    String msg = latestVersion.description;
     String btn_ok = BTN_OK;
     String btn_cancel = BTN_CANCEL;
 
-    Locale locale = Locale.getDefault();
-    if (locale.getDisplayLanguage(Locale.CHINA).equals("中文")) {
-      btn_ok = BTN_OK_CN;
-      btn_cancel = BTN_CANCEL_CN;
-      if (locale.getCountry().equals("CN")) {
-        // 简中
-        msg = MSG_CN;
-      } else if (locale.getCountry().equals("TW") || locale.getCountry().equals("HK")) {
-        // 繁中
-        msg = MSG_TW;
-      }
-    }
-    msg = msg.replace("VERSION_NUMBER", latestVersion.getVersion());
-
+    String update = latestVersion.update;
     AlertDialog.Builder alert = new AlertDialog.Builder(mContext);
-    alert.setTitle(latestVersion.getSummary()).setMessage(msg)
-        .setPositiveButton(btn_ok, new DialogInterface.OnClickListener() {
+    alert.setTitle(latestVersion.getSummary()).setMessage(msg).setPositiveButton(btn_ok,
+        new DialogInterface.OnClickListener() {
           @Override
           public void onClick(DialogInterface dialog,
               int which) {/*
@@ -232,20 +240,30 @@ public class AutoUpdatePlugin extends CordovaPlugin {
             // 直接跳转浏览器下载
             Uri uri = Uri.parse(downloadUrl);
             Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             mContext.startActivity(intent);
-            dialog.dismiss();
-          }
-        });
-    String update = latestVersion.update;
-    if (null != update && !update.equals("true")){
-        //不强制更新
-          alert.setNegativeButton(btn_cancel, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-              // 取消下载的逻辑
+            // mContext.startActivity(self);
+            // 强制更新时不让弹窗消失
+            if (null != latestVersion.update && latestVersion.update.equals("true")) {
+              Log.i(TAG, "try close the whole app");
+              //写个异常，强行退出
+              String error = null;
+              error.equals("error");
+            } else {
+              Log.i(TAG, "not try to close");
               dialog.dismiss();
             }
-          });
+          }
+        });
+    if (null == update || !update.equals("true")) {
+      // 不强制更新
+      alert.setNegativeButton(btn_cancel, new DialogInterface.OnClickListener() {
+        @Override
+        public void onClick(DialogInterface dialog, int which) {
+          // 取消下载的逻辑
+          dialog.dismiss();
+        }
+      });
     }
     alert.setCancelable(false);
     alert.create().show();
@@ -373,7 +391,6 @@ public class AutoUpdatePlugin extends CordovaPlugin {
     private String url;
     private String update;
 
-    
     public String getUpdate() {
       return update;
     }
@@ -428,11 +445,11 @@ public class AutoUpdatePlugin extends CordovaPlugin {
     public void handleMessage(Message msg) {
       super.handleMessage(msg);
       switch (msg.what) {
-      case HAS_NEW_VERSION:
-        showUpdateDialog();
-        break;
-      default:
-        break;
+        case HAS_NEW_VERSION:
+          showUpdateDialog();
+          break;
+        default:
+          break;
       }
     }
   };
